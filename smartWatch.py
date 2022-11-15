@@ -71,11 +71,21 @@ def details(dom1):
     try:
         description = dom1.xpath('//div[@class="_1mXcCf RmoJUa"]/text()')
         if description:
-            description = description[0]
+            desc = description[0]
         else:
-            description = 'No description available'
+            specs_title = dom1.xpath('//tr[@class="_1s_Smc row"]/td/text()')
+            specs_detail = dom1.xpath('//tr[@class="_1s_Smc row"]/td/ul/li/text()')
+            specs_dict = {}
+            for i in range(len(specs_title)):
+                specs_dict[specs_title[i]] = specs_detail[i]
+            desc = str(specs_dict)
     except Exception as e:
-        description = "No description available"
+        specs_title = dom1.xpath('//tr[@class="_1s_Smc row"]/td/text()')
+        specs_detail = dom1.xpath('//tr[@class="_1s_Smc row"]/td/ul/li/text()')
+        specs_dict = {}
+        for i in range(len(specs_title)):
+            specs_dict[specs_title[i]] = specs_detail[i]
+        desc = str(specs_dict)
     try:
         features = dom1.xpath('//li[@class="_21lJbe"]/text()')
         for ele in features:
@@ -86,17 +96,18 @@ def details(dom1):
                 memory = 'Memory data not available'
     except Exception as e:
         memory = 'Memory data not available'
-    product_record = [title, product_brand, sales_price, mrp, discount, memory, no_of_ratings, no_of_reviews, overall_rating,description]
+    product_record = [title, product_brand, sales_price, mrp, discount, memory, no_of_ratings, no_of_reviews, overall_rating]+[desc]
     return product_record
 
 
-with open('smartwatch_data.csv','w',newline='', encoding='utf-8') as f:
+with open('smartwatch_data2.csv','w',newline='', encoding='utf-8') as f:
     theWriter = writer(f)
     heading = ['Product_url','Product_name','Brand','Sale_price','MRP','Discount_percentage','Memory','No_of_ratings','No_of_reviews','Star_rating','Description']
     theWriter.writerow(heading)
     for product in product_list:
         product_url = base_url + product
         product_dom = get_dom(product_url)
+        product_url = product_url.split('&marketplace')[0]
         record = [product_url]+details(product_dom)
         theWriter.writerow(record)
 
