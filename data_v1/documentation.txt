@@ -1,0 +1,3 @@
+Here, we removed the duplicate data from the master data.
+Initially, there were 957 rows.
+After removing the duplicates, the dataset now contains 900 rows of data.

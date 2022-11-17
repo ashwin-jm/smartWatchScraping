@@ -3,15 +3,20 @@ from bs4 import BeautifulSoup
 import requests
 from lxml import etree as et
 from csv import writer
+import random
+import time
 
-header = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.66 Safari/537.36"}
+header_list = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.66 Safari/537.36",
+               "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0",
+               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393"]
 base_url = "https://www.flipkart.com"
 smartWatch_brands = ['APPLE', 'Noise', 'boAt', 'Honor', 'SAMSUNG', 'FITBIT', 'Amazfit', 'GARMIN', 'Huawei', 'FOSSIL']
 product_list = []
 
 
 def get_dom(the_url):
+    user_agent = random.choice(header_list)
+    header = {"User-Agent": user_agent}
     response = requests.get(the_url, headers=header, stream=True)
     soup = BeautifulSoup(response.text, 'lxml')
     current_dom = et.HTML(str(soup))
@@ -33,9 +38,10 @@ for brand in smartWatch_brands:
             dom = get_dom(next_page_url)
             page_product_list = dom.xpath('//a[@class="_1fQZEK"]/@href')
             product_list += page_product_list
+            time.sleep(random.randint(2,8))
 
 
-def details(dom1):
+def titleandbrand(dom1):
     try:
         title = dom1.xpath('//span[@class="B_NuCI"]/text()')[0]
     except Exception as e:
@@ -44,6 +50,10 @@ def details(dom1):
         product_brand = 'No brand available'
     else:
         product_brand = title.split()[0]
+    return title, product_brand
+
+
+def salespriceandmrp(dom1):
     try:
         sales_price = dom1.xpath('//div[@class="_30jeq3 _16Jk6d"]/text()')[0].replace(u'\u20B9','')
     except Exception as e:
@@ -52,26 +62,46 @@ def details(dom1):
         mrp = dom1.xpath('//div[@class="_3I9_wc _2p6lqe"]/text()')[1]
     except Exception as e:
         mrp = sales_price
+    return sales_price, mrp
+
+
+def discount(dom1):
     try:
-        discount = dom1.xpath('//div[@class="_3Ay6Sb _31Dcoz"]/span/text()')[0].split()[0].replace('%','')
+        disc = dom1.xpath('//div[@class="_3Ay6Sb _31Dcoz"]/span/text()')[0].split()[0].replace('%','')
     except Exception as e:
-        discount = 0
+        disc = 0
+    return disc
+
+
+def noofratings(dom1):
     try:
         no_of_ratings = dom1.xpath('//div[@class="col-12-12"]/span/text()')[0].split()[0]
     except Exception as e:
         no_of_ratings = 0
+    return no_of_ratings
+
+
+def noofreviews(dom1):
     try:
         no_of_reviews = dom1.xpath('//div[@class="col-12-12"]/span/text()')[1].split()[0]
     except Exception as e:
         no_of_reviews = 0
+    return no_of_reviews
+
+
+def overallrating(dom1):
     try:
         overall_rating = dom1.xpath('//div[@class="_2d4LTz"]/text()')[0]
     except Exception as e:
         overall_rating = 0
+    return overall_rating
+
+
+def description(dom1):
     try:
-        description = dom1.xpath('//div[@class="_1mXcCf RmoJUa"]/text()')
-        if description:
-            desc = description[0]
+        desc = dom1.xpath('//div[@class="_1mXcCf RmoJUa"]/text()')
+        if desc:
+            desc = desc[0]
         else:
             specs_title = dom1.xpath('//tr[@class="_1s_Smc row"]/td/text()')
             specs_detail = dom1.xpath('//tr[@class="_1s_Smc row"]/td/ul/li/text()')
@@ -86,18 +116,21 @@ def details(dom1):
         for i in range(len(specs_title)):
             specs_dict[specs_title[i]] = specs_detail[i]
         desc = str(specs_dict)
+    return desc
+
+
+def memory(dom1):
     try:
         features = dom1.xpath('//li[@class="_21lJbe"]/text()')
         for ele in features:
             if 'GB' in ele:
-                memory = ele.replace('GB','')
+                mem = ele.replace('GB','')
                 break
             else:
-                memory = 'Memory data not available'
+                mem = 'Memory data not available'
     except Exception as e:
-        memory = 'Memory data not available'
-    product_record = [title, product_brand, sales_price, mrp, discount, memory, no_of_ratings, no_of_reviews, overall_rating]+[desc]
-    return product_record
+        mem = 'Memory data not available'
+    return mem
 
 
 with open('smartwatch_data2.csv','w',newline='', encoding='utf-8') as f:
@@ -108,7 +141,15 @@ with open('smartwatch_data2.csv','w',newline='', encoding='utf-8') as f:
         product_url = base_url + product
         product_dom = get_dom(product_url)
         product_url = product_url.split('&marketplace')[0]
-        record = [product_url]+details(product_dom)
+        title, brand = titleandbrand(product_dom)
+        sales_price, mrp = salespriceandmrp(product_dom)
+        disc = discount(product_dom)
+        no_of_ratings = noofratings(product_dom)
+        no_of_reviews = noofreviews(product_dom)
+        overall_rating = overallrating(product_dom)
+        desc = description(product_dom)
+        mem = memory(product_dom)
+        record = [product_url, title, brand, sales_price, mrp, disc, no_of_ratings, no_of_reviews, overall_rating, desc, mem]
         theWriter.writerow(record)
 
 

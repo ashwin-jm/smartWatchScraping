@@ -1,0 +1,3 @@
+Here, we removed the entries of those products whose price was not available as they were sold out.
+Initially. there were 900 entries.
+After performing the cleaning operations, now we have 896 rows of data.
