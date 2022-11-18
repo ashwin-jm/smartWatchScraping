@@ -1,0 +1,2 @@
+Some of the rows in our data were having the description column as blank space.(28 rows)
+Here, we resolved that issue and scraped the description of these products.
