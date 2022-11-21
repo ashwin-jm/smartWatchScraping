@@ -39,7 +39,7 @@ def description(dom1):
         desc = str(specs_dict)
     return desc
 
-with open('smartwatch_data_v2.csv', 'r', encoding='utf-8') as read_f, open('smartwatch_data_v3.csv', 'w', encoding='utf-8') as write_f:
+with open('smartwatch_data_v2.csv', 'r', encoding='utf-8') as read_f, open('smartwatch_data_v3.csv', 'w', newline='', encoding='utf-8') as write_f:
     theReader = csv.reader(read_f)
     next(theReader, None)
     theWriter = csv.writer(write_f)

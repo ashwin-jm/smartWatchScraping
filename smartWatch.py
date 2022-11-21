@@ -149,7 +149,7 @@ with open('smartwatch_data2.csv','w',newline='', encoding='utf-8') as f:
         overall_rating = overallrating(product_dom)
         desc = description(product_dom)
         mem = memory(product_dom)
-        record = [product_url, title, brand, sales_price, mrp, disc, no_of_ratings, no_of_reviews, overall_rating, desc, mem]
+        record = [product_url, title, brand, sales_price, mrp, disc, mem, no_of_ratings, no_of_reviews, overall_rating, desc]
         theWriter.writerow(record)
 
 
